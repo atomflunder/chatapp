@@ -1,34 +1,27 @@
-package src
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 )
 
-type Message struct {
-	ID        uuid.UUID
-	Content   string
-	Timestamp int64
-	Username  string
+type Handler struct{}
+
+func NewHandler() *Handler {
+	return &Handler{}
 }
 
-var messages = make(map[uuid.UUID]Message)
+func (h *Handler) RegisterRoutes() *http.ServeMux {
+	r := http.NewServeMux()
+	r.HandleFunc("GET /messages", getMessages)
+	r.HandleFunc("POST /messages/new", postMessage)
 
-func messageHandler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case "GET":
-		getMessages(w, r)
-	case "POST":
-		postMessage(w, r)
-	default:
-		http.Error(w, "Method not allowed!", http.StatusMethodNotAllowed)
-	}
+	return r
 }
 
 func getMessages(w http.ResponseWriter, r *http.Request) {
@@ -78,11 +71,4 @@ func postMessage(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	json.NewEncoder(w).Encode(m)
-}
-
-func StartServer() {
-	http.HandleFunc("/new", messageHandler)
-
-	fmt.Println("Server up and running!")
-	log.Fatal(http.ListenAndServe(":8080", nil))
 }
