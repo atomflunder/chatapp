@@ -3,9 +3,7 @@ package database
 import (
 	"database/sql"
 	"log"
-	"time"
 
-	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -116,12 +114,7 @@ func (w *DBWrapper) InsertMessage(m ParialMessage) {
 	}
 	defer stmt.Close()
 
-	message := Message{
-		ID:        uuid.NewString(),
-		Timestamp: time.Now().UnixMilli(),
-		Username:  m.Username,
-		Content:   m.Content,
-	}
+	message := m.getMessage()
 
 	_, err = stmt.Exec(message.ID, message.Username, message.Timestamp, message.Content)
 	if err != nil {

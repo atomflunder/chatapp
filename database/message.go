@@ -3,6 +3,8 @@ package database
 import (
 	"fmt"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Message struct {
@@ -15,6 +17,15 @@ type Message struct {
 type ParialMessage struct {
 	Content  string
 	Username string
+}
+
+func (p ParialMessage) getMessage() Message {
+	return Message{
+		ID:        uuid.NewString(),
+		Timestamp: time.Now().UnixMilli(),
+		Username:  p.Username,
+		Content:   p.Content,
+	}
 }
 
 func (m Message) Format() string {
