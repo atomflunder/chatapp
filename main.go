@@ -3,13 +3,13 @@ package main
 import "log"
 
 func main() {
-	db, err := openDB()
+	w, err := openDB()
 	if err != nil {
 		log.Fatal("Error opening database")
 	}
-	defer db.Close()
+	defer w.db.Close()
 
-	InitializeDB(db)
+	w.Initialize()
 
-	StartServer(db)
+	StartServer(w)
 }

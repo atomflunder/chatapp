@@ -1,14 +1,13 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 )
 
-func StartServer(db *sql.DB) {
-	handler := NewHandler(db)
+func StartServer(w *DBWrapper) {
+	handler := NewHandler(w)
 	messageRouter := handler.RegisterRoutes()
 
 	router := http.NewServeMux()

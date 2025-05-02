@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -12,11 +11,11 @@ import (
 )
 
 type Handler struct {
-	db *sql.DB
+	w *DBWrapper
 }
 
-func NewHandler(db *sql.DB) *Handler {
-	return &Handler{db}
+func NewHandler(w *DBWrapper) *Handler {
+	return &Handler{w}
 }
 
 func (h *Handler) RegisterRoutes() *http.ServeMux {
@@ -33,9 +32,9 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 
 	var ms []Message
 	if username != "" {
-		ms = GetMessagesFromUser(h.db, username)
+		ms = h.w.GetMessagesFromUser(username)
 	} else {
-		ms = GetMessages(h.db)
+		ms = h.w.GetMessages()
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -67,7 +66,7 @@ func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
 	m.Timestamp = time.Now().UnixMilli()
 
 	fmt.Println(m.FormatMessage())
-	InsertMessage(h.db, m)
+	h.w.InsertMessage(m)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
