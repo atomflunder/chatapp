@@ -4,18 +4,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 type Message struct {
-	ID        uuid.UUID
+	ID        string
 	Content   string
 	Timestamp int64
 	Username  string
 }
-
-var messages = make(map[uuid.UUID]Message)
 
 func StartServer() {
 	handler := NewHandler()

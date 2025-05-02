@@ -25,15 +25,14 @@ func (h *Handler) RegisterRoutes() *http.ServeMux {
 }
 
 func getMessages(w http.ResponseWriter, r *http.Request) {
-	ms := make([]Message, 0, len(messages))
-
 	query := r.URL.Query()
 	username := query.Get("Username")
 
-	for _, m := range messages {
-		if username == "" || m.Username == username {
-			ms = append(ms, m)
-		}
+	var ms []Message
+	if username != "" {
+		ms = GetMessagesFromUser(username)
+	} else {
+		ms = GetMessages()
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -61,11 +60,11 @@ func postMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.ID = uuid
-	m.Timestamp = time.Now().Unix()
+	m.ID = uuid.String()
+	m.Timestamp = time.Now().UnixMilli()
 
-	messages[m.ID] = m
 	fmt.Println("New Message Received - ID", m.ID)
+	InsertMessage(m)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
