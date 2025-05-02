@@ -2,19 +2,17 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"time"
 
-	"github.com/google/uuid"
+	"github.com/atomflunder/chatapp/database"
 )
 
 type Handler struct {
-	w *DBWrapper
+	w *database.DBWrapper
 }
 
-func NewHandler(w *DBWrapper) *Handler {
+func NewHandler(w *database.DBWrapper) *Handler {
 	return &Handler{w}
 }
 
@@ -30,19 +28,25 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	username := query.Get("Username")
 
-	var ms []Message
+	var ms []database.Message
 	if username != "" {
 		ms = h.w.GetMessagesFromUser(username)
 	} else {
 		ms = h.w.GetMessages()
 	}
 
+	var output string
+
+	for _, m := range ms {
+		output += m.Format()
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(ms)
+	json.NewEncoder(w).Encode(output)
 }
 
 func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
-	var m Message
+	var m database.ParialMessage
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -56,16 +60,6 @@ func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uuid, err := uuid.NewUUID()
-	if err != nil {
-		http.Error(w, "Error Setting UUID", http.StatusInternalServerError)
-		return
-	}
-
-	m.ID = uuid.String()
-	m.Timestamp = time.Now().UnixMilli()
-
-	fmt.Println(m.FormatMessage())
 	h.w.InsertMessage(m)
 
 	w.Header().Set("Content-Type", "application/json")

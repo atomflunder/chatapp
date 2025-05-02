@@ -1,15 +1,17 @@
-package main
+package database
 
 import (
 	"database/sql"
 	"log"
+	"time"
 
+	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type DBWrapper struct{ db *sql.DB }
+type DBWrapper struct{ Db *sql.DB }
 
-func openDB() (*DBWrapper, error) {
+func OpenDB() (*DBWrapper, error) {
 	db, err := sql.Open("sqlite3", "./database/messages.db")
 
 	if err != nil {
@@ -24,7 +26,7 @@ func (w *DBWrapper) Initialize() {
 	sqlStmt := `
 	create table if not exists messages (id text not null primary key, username text, timestamp integer, content text);
 	`
-	_, err := w.db.Exec(sqlStmt)
+	_, err := w.Db.Exec(sqlStmt)
 	if err != nil {
 		log.Printf("%q: %s\n", err, sqlStmt)
 		return
@@ -34,7 +36,7 @@ func (w *DBWrapper) Initialize() {
 func (w *DBWrapper) GetMessages() []Message {
 	messages := []Message{}
 
-	rows, err := w.db.Query(`select * from messages`)
+	rows, err := w.Db.Query(`select * from messages`)
 	if err != nil {
 		log.Fatal(err)
 		return messages
@@ -64,7 +66,7 @@ func (w *DBWrapper) GetMessages() []Message {
 func (w *DBWrapper) GetMessagesFromUser(u string) []Message {
 	messages := []Message{}
 
-	tx, err := w.db.Begin()
+	tx, err := w.Db.Begin()
 	if err != nil {
 		log.Fatal(err)
 		return messages
@@ -103,8 +105,8 @@ func (w *DBWrapper) GetMessagesFromUser(u string) []Message {
 	return messages
 }
 
-func (w *DBWrapper) InsertMessage(m Message) {
-	tx, err := w.db.Begin()
+func (w *DBWrapper) InsertMessage(m ParialMessage) {
+	tx, err := w.Db.Begin()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -114,7 +116,14 @@ func (w *DBWrapper) InsertMessage(m Message) {
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(m.ID, m.Username, m.Timestamp, m.Content)
+	message := Message{
+		ID:        uuid.NewString(),
+		Timestamp: time.Now().UnixMilli(),
+		Username:  m.Username,
+		Content:   m.Content,
+	}
+
+	_, err = stmt.Exec(message.ID, message.Username, message.Timestamp, message.Content)
 	if err != nil {
 		log.Fatal(err)
 	}

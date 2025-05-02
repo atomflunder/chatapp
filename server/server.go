@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/atomflunder/chatapp/database"
 )
 
-func StartServer(w *DBWrapper) {
+func InitializeRoutes(w *database.DBWrapper) {
 	handler := NewHandler(w)
 	messageRouter := handler.RegisterRoutes()
 
