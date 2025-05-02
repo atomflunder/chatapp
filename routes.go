@@ -63,7 +63,7 @@ func postMessage(w http.ResponseWriter, r *http.Request) {
 	m.ID = uuid.String()
 	m.Timestamp = time.Now().UnixMilli()
 
-	fmt.Println("New Message Received - ID", m.ID)
+	fmt.Println(m.FormatMessage())
 	InsertMessage(m)
 
 	w.Header().Set("Content-Type", "application/json")

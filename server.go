@@ -6,13 +6,6 @@ import (
 	"net/http"
 )
 
-type Message struct {
-	ID        string
-	Content   string
-	Timestamp int64
-	Username  string
-}
-
 func StartServer() {
 	handler := NewHandler()
 	messageRouter := handler.RegisterRoutes()
