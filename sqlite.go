@@ -18,33 +18,19 @@ func openDB() (*sql.DB, error) {
 	return db, nil
 }
 
-func CreateDB() {
-	db, err := openDB()
-	if err != nil {
-		log.Fatal("Error opening db")
-		return
-	}
-	defer db.Close()
-
+func InitializeDB(db *sql.DB) {
 	sqlStmt := `
 	create table if not exists messages (id text not null primary key, username text, timestamp integer, content text);
 	`
-	_, err = db.Exec(sqlStmt)
+	_, err := db.Exec(sqlStmt)
 	if err != nil {
 		log.Printf("%q: %s\n", err, sqlStmt)
 		return
 	}
 }
 
-func GetMessages() []Message {
+func GetMessages(db *sql.DB) []Message {
 	messages := []Message{}
-
-	db, err := openDB()
-	if err != nil {
-		log.Fatal("Error opening db")
-		return messages
-	}
-	defer db.Close()
 
 	rows, err := db.Query(`select * from messages`)
 	if err != nil {
@@ -73,15 +59,8 @@ func GetMessages() []Message {
 	return messages
 }
 
-func GetMessagesFromUser(u string) []Message {
+func GetMessagesFromUser(db *sql.DB, u string) []Message {
 	messages := []Message{}
-
-	db, err := openDB()
-	if err != nil {
-		log.Fatal("Error opening db")
-		return messages
-	}
-	defer db.Close()
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -119,19 +98,10 @@ func GetMessagesFromUser(u string) []Message {
 		messages = append(messages, message)
 	}
 
-	db.Close()
-
 	return messages
 }
 
-func InsertMessage(m Message) {
-	db, err := openDB()
-	if err != nil {
-		log.Fatal("Error opening db")
-		return
-	}
-	defer db.Close()
-
+func InsertMessage(db *sql.DB, m Message) {
 	tx, err := db.Begin()
 	if err != nil {
 		log.Fatal(err)
@@ -152,5 +122,4 @@ func InsertMessage(m Message) {
 		log.Fatal(err)
 	}
 
-	// TODO: Database is locked after 2 inserts
 }

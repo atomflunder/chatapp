@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,36 +11,38 @@ import (
 	"github.com/google/uuid"
 )
 
-type Handler struct{}
+type Handler struct {
+	db *sql.DB
+}
 
-func NewHandler() *Handler {
-	return &Handler{}
+func NewHandler(db *sql.DB) *Handler {
+	return &Handler{db}
 }
 
 func (h *Handler) RegisterRoutes() *http.ServeMux {
 	r := http.NewServeMux()
-	r.HandleFunc("GET /messages", getMessages)
-	r.HandleFunc("POST /messages/new", postMessage)
+	r.HandleFunc("GET /messages", h.getMessages)
+	r.HandleFunc("POST /messages/new", h.postMessage)
 
 	return r
 }
 
-func getMessages(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	username := query.Get("Username")
 
 	var ms []Message
 	if username != "" {
-		ms = GetMessagesFromUser(username)
+		ms = GetMessagesFromUser(h.db, username)
 	} else {
-		ms = GetMessages()
+		ms = GetMessages(h.db)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ms)
 }
 
-func postMessage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
 	var m Message
 
 	body, err := io.ReadAll(r.Body)
@@ -64,7 +67,7 @@ func postMessage(w http.ResponseWriter, r *http.Request) {
 	m.Timestamp = time.Now().UnixMilli()
 
 	fmt.Println(m.FormatMessage())
-	InsertMessage(m)
+	InsertMessage(h.db, m)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

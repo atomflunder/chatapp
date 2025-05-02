@@ -10,5 +10,5 @@ type Message struct {
 }
 
 func (m Message) FormatMessage() string {
-	return fmt.Sprintf("Message %s by %s\nContent: %s\n\n", m.ID, m.Username, m.Content)
+	return fmt.Sprintf("Message %s by %s\nContent: %s\n", m.ID, m.Username, m.Content)
 }
