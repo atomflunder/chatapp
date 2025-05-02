@@ -6,17 +6,19 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type Message struct {
-	ID        int
+	ID        uuid.UUID
 	Content   string
-	Timestamp int
+	Timestamp int64
 	Username  string
 }
 
-var messages = make(map[int]Message)
-var currentID = 1
+var messages = make(map[uuid.UUID]Message)
 
 func messageHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
@@ -60,9 +62,14 @@ func postMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	m.ID = currentID
-	m.Timestamp = 123
-	currentID++
+	uuid, err := uuid.NewUUID()
+	if err != nil {
+		http.Error(w, "Error Setting UUID", http.StatusInternalServerError)
+		return
+	}
+
+	m.ID = uuid
+	m.Timestamp = time.Now().Unix()
 
 	messages[m.ID] = m
 	fmt.Println("New Message Received - ID", m.ID)
