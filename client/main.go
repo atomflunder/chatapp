@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -37,11 +38,12 @@ func main() {
 
 		config := models.GetConfig()
 
-		_, err = http.Post(fmt.Sprintf("http://%s:%s/messages/new", config.Host, config.Port), "application/json", bytes.NewBuffer([]byte(messageJSON)))
-
+		resp, err := http.Post(fmt.Sprintf("http://%s:%s/messages/new", config.Host, config.Port), "application/json", bytes.NewBuffer([]byte(messageJSON)))
 		if err != nil {
 			log.Fatal("Error sending request!")
 		}
 
+		io.Copy(io.Discard, resp.Body)
+		resp.Body.Close()
 	}
 }
