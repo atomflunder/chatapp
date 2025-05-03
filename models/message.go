@@ -12,11 +12,13 @@ type Message struct {
 	Content   string `json:"content"`
 	Timestamp int64  `json:"timestamp"`
 	Username  string `json:"username"`
+	Channel   string `json:"channel"`
 }
 
 type ParialMessage struct {
 	Content  string
 	Username string
+	Channel  string
 }
 
 func (p ParialMessage) GetMessage() Message {

@@ -28,7 +28,7 @@ func OpenDB() (*DBWrapper, error) {
 // Initialize the database with the needed structure, for first time setup.
 func (w *DBWrapper) Initialize() {
 	sqlStmt := `
-	create table if not exists messages (id text not null primary key, username text, timestamp integer, content text);
+	create table if not exists messages (id text not null primary key, username text, timestamp integer, channel text, content text);
 	`
 	_, err := w.Db.Exec(sqlStmt)
 	if err != nil {
@@ -37,9 +37,9 @@ func (w *DBWrapper) Initialize() {
 	}
 }
 
-// Gets you all messages, excluding a username, and after a timestamp.
-// To get all messages, pass in "" and 0.
-func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
+// Gets you all messages in a channel, excluding a username, and after a timestamp.
+// To get all messages in a channel, pass in "" and 0.
+func (w *DBWrapper) GetMessages(c string, u string, t int64) []models.Message {
 	messages := []models.Message{}
 
 	tx, err := w.Db.Begin()
@@ -50,14 +50,14 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 
 	var rows *sql.Rows
 
-	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and not username = ? order by timestamp asc`)
+	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and channel = ? and not username = ? order by timestamp asc`)
 	if err != nil {
 		log.Fatal(err)
 		return messages
 	}
 	defer stmt.Close()
 
-	rows, err = stmt.Query(t, u)
+	rows, err = stmt.Query(t, c, u)
 	if err != nil {
 		log.Fatal(err)
 		return messages
@@ -95,7 +95,7 @@ func (w *DBWrapper) InsertMessage(m models.ParialMessage) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	stmt, err := tx.Prepare("insert into messages(id, username, timestamp, content) values(?, ?, ?, ?)")
+	stmt, err := tx.Prepare("insert into messages(id, username, timestamp, channel, content) values(?, ?, ?, ?, ?)")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func (w *DBWrapper) InsertMessage(m models.ParialMessage) {
 
 	message := m.GetMessage()
 
-	_, err = stmt.Exec(message.ID, message.Username, message.Timestamp, message.Content)
+	_, err = stmt.Exec(message.ID, message.Username, message.Timestamp, message.Channel, message.Content)
 	if err != nil {
 		log.Fatal(err)
 	}

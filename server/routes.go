@@ -31,6 +31,7 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 
 	query := r.URL.Query()
 	username := query.Get("Username")
+	channel := query.Get("Channel")
 	since := query.Get("Since")
 
 	time, err := strconv.Atoi(since)
@@ -38,7 +39,7 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 		time = 0
 	}
 
-	var ms []models.Message = h.w.GetMessages(username, int64(time))
+	var ms []models.Message = h.w.GetMessages(channel, username, int64(time))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ms)

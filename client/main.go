@@ -18,14 +18,21 @@ func main() {
 	fmt.Println("Hi, please type in your Username: ")
 	fmt.Scan(&username)
 
+	var channel string
+
+	fmt.Println("Type in the channel you want to connect to: ")
+	fmt.Scan(&channel)
+
+	fmt.Printf("Connecting to %s\n", channel)
+
 	cfg := models.GetConfig()
 
-	go sendLoop(cfg, username)
-	writeLoop(cfg, username)
+	go sendLoop(cfg, username, channel)
+	writeLoop(cfg, username, channel)
 
 }
 
-func sendLoop(cfg models.Config, username string) {
+func sendLoop(cfg models.Config, username string, channel string) {
 	var secondsSleep time.Duration = 2
 
 	for {
@@ -33,7 +40,7 @@ func sendLoop(cfg models.Config, username string) {
 
 		var newMsgs []models.Message
 
-		resp, err := http.Get(fmt.Sprintf("http://%s:%s/messages?Since=%d", cfg.Host, cfg.Port, timestamp))
+		resp, err := http.Get(fmt.Sprintf("http://%s:%s/messages?Since=%d?Channel=%s", cfg.Host, cfg.Port, timestamp, channel))
 		if err != nil {
 			fmt.Println("Could not get new messages")
 			time.Sleep(time.Second * secondsSleep * 2)
@@ -45,11 +52,12 @@ func sendLoop(cfg models.Config, username string) {
 			time.Sleep(time.Second * secondsSleep * 2)
 		}
 
-		for _, msg := range newMsgs {
-			fmt.Printf("\n%s", msg.Format())
-		}
 		if len(newMsgs) > 0 {
-			fmt.Printf("\n%s (%s): ", username, time.Now().Format(time.TimeOnly))
+			fmt.Printf("\033[1A\033[K") // Deletes the last line
+			for _, msg := range newMsgs {
+				fmt.Printf("\n%s", msg.Format())
+			}
+			fmt.Printf("\n%s >: ", username)
 		}
 
 		resp.Body.Close()
@@ -58,14 +66,14 @@ func sendLoop(cfg models.Config, username string) {
 	}
 }
 
-func writeLoop(cfg models.Config, username string) {
+func writeLoop(cfg models.Config, username string, channel string) {
 	for {
 		var content string
 
-		fmt.Printf("%s (%s): ", username, time.Now().Format(time.TimeOnly))
+		fmt.Printf("\n%s >: ", username)
 		fmt.Scanf("%s\n", &content)
 
-		part := models.ParialMessage{Username: username, Content: content}
+		part := models.ParialMessage{Username: username, Content: content, Channel: channel}
 		message := part.GetMessage()
 
 		messageJSON, err := json.Marshal(message)
