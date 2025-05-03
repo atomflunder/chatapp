@@ -40,7 +40,7 @@ func sendLoop(cfg models.Config, username string, channel string) {
 
 		var newMsgs []models.Message
 
-		resp, err := http.Get(fmt.Sprintf("http://%s:%s/messages?Since=%d?Channel=%s", cfg.Host, cfg.Port, timestamp, channel))
+		resp, err := http.Get(fmt.Sprintf("http://%s:%s/messages?Since=%d&Channel=%s&Username=%s", cfg.Host, cfg.Port, timestamp, channel, username))
 		if err != nil {
 			fmt.Println("Could not get new messages")
 		}
@@ -68,7 +68,7 @@ func writeLoop(cfg models.Config, username string, channel string) {
 	for {
 		var content string
 
-		fmt.Printf("\n%s >: ", username)
+		fmt.Printf("%s >: ", username)
 		fmt.Scanf("%s\n", &content)
 
 		part := models.ParialMessage{Username: username, Content: content, Channel: channel}
