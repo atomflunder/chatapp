@@ -5,14 +5,14 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/atomflunder/chatapp/database"
+	"github.com/atomflunder/chatapp/models"
 )
 
 type Handler struct {
-	w *database.DBWrapper
+	w *DBWrapper
 }
 
-func NewHandler(w *database.DBWrapper) *Handler {
+func NewHandler(w *DBWrapper) *Handler {
 	return &Handler{w}
 }
 
@@ -28,7 +28,7 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	username := query.Get("Username")
 
-	var ms []database.Message
+	var ms []models.Message
 	if username != "" {
 		ms = h.w.GetMessagesFromUser(username)
 	} else {
@@ -46,7 +46,7 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
-	var m database.ParialMessage
+	var m models.ParialMessage
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {

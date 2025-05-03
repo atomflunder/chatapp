@@ -5,16 +5,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/atomflunder/chatapp/database"
+	"github.com/atomflunder/chatapp/models"
 )
 
-func InitializeRoutes(w *database.DBWrapper) {
+func InitializeRoutes(w *DBWrapper) {
 	handler := NewHandler(w)
 	messageRouter := handler.RegisterRoutes()
 
 	router := http.NewServeMux()
 	router.Handle("/", messageRouter)
 
+	config := models.GetConfig()
+
 	fmt.Println("Server up and running!")
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", config.Port), router))
 }

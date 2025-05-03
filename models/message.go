@@ -1,4 +1,4 @@
-package database
+package models
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ type ParialMessage struct {
 	Username string
 }
 
-func (p ParialMessage) getMessage() Message {
+func (p ParialMessage) GetMessage() Message {
 	return Message{
 		ID:        uuid.NewString(),
 		Timestamp: time.Now().UnixMilli(),

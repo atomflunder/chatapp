@@ -1,9 +1,11 @@
-package database
+package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 
+	"github.com/atomflunder/chatapp/models"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -31,8 +33,8 @@ func (w *DBWrapper) Initialize() {
 	}
 }
 
-func (w *DBWrapper) GetMessages() []Message {
-	messages := []Message{}
+func (w *DBWrapper) GetMessages() []models.Message {
+	messages := []models.Message{}
 
 	rows, err := w.Db.Query(`select * from messages`)
 	if err != nil {
@@ -53,7 +55,7 @@ func (w *DBWrapper) GetMessages() []Message {
 			return messages
 		}
 
-		message := Message{ID: id, Username: username, Timestamp: timestamp, Content: content}
+		message := models.Message{ID: id, Username: username, Timestamp: timestamp, Content: content}
 
 		messages = append(messages, message)
 	}
@@ -61,8 +63,8 @@ func (w *DBWrapper) GetMessages() []Message {
 	return messages
 }
 
-func (w *DBWrapper) GetMessagesFromUser(u string) []Message {
-	messages := []Message{}
+func (w *DBWrapper) GetMessagesFromUser(u string) []models.Message {
+	messages := []models.Message{}
 
 	tx, err := w.Db.Begin()
 	if err != nil {
@@ -95,7 +97,7 @@ func (w *DBWrapper) GetMessagesFromUser(u string) []Message {
 			return messages
 		}
 
-		message := Message{ID: id, Username: username, Timestamp: timestamp, Content: content}
+		message := models.Message{ID: id, Username: username, Timestamp: timestamp, Content: content}
 
 		messages = append(messages, message)
 	}
@@ -103,7 +105,7 @@ func (w *DBWrapper) GetMessagesFromUser(u string) []Message {
 	return messages
 }
 
-func (w *DBWrapper) InsertMessage(m ParialMessage) {
+func (w *DBWrapper) InsertMessage(m models.ParialMessage) {
 	tx, err := w.Db.Begin()
 	if err != nil {
 		log.Fatal(err)
@@ -114,7 +116,7 @@ func (w *DBWrapper) InsertMessage(m ParialMessage) {
 	}
 	defer stmt.Close()
 
-	message := m.getMessage()
+	message := m.GetMessage()
 
 	_, err = stmt.Exec(message.ID, message.Username, message.Timestamp, message.Content)
 	if err != nil {
@@ -126,4 +128,5 @@ func (w *DBWrapper) InsertMessage(m ParialMessage) {
 		log.Fatal(err)
 	}
 
+	fmt.Println("Got new message", message.ID)
 }
