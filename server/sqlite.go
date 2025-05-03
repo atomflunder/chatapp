@@ -43,30 +43,21 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 
 	var rows *sql.Rows
 	if u == "" {
-		stmt, err := tx.Prepare(`select * from messages where timestamp >= ?`)
-		if err != nil {
-			log.Fatal(err)
-			return messages
-		}
-
-		rows, err = stmt.Query(t)
-		if err != nil {
-			log.Fatal(err)
-			return messages
-		}
-	} else {
-		stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and username = ?`)
-		if err != nil {
-			log.Fatal(err)
-			return messages
-		}
-
-		rows, err = stmt.Query(t, u)
-		if err != nil {
-			log.Fatal(err)
-			return messages
-		}
+		u = "%"
 	}
+
+	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and username like ?`)
+	if err != nil {
+		log.Fatal(err)
+		return messages
+	}
+
+	rows, err = stmt.Query(t, u)
+	if err != nil {
+		log.Fatal(err)
+		return messages
+	}
+
 	defer rows.Close()
 
 	for rows.Next() {
