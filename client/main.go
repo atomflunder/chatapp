@@ -34,6 +34,7 @@ func main() {
 
 func sendLoop(cfg models.Config, username string, channel string) {
 	var secondsSleep time.Duration = 2
+	var errorsInARow time.Duration = 1
 
 	for {
 		timestamp := time.Now().UnixMilli() - int64(1000*secondsSleep)
@@ -43,14 +44,18 @@ func sendLoop(cfg models.Config, username string, channel string) {
 		resp, err := http.Get(fmt.Sprintf("http://%s:%s/messages?Since=%d?Channel=%s", cfg.Host, cfg.Port, timestamp, channel))
 		if err != nil {
 			fmt.Println("Could not get new messages")
-			time.Sleep(time.Second * secondsSleep * 2)
+			time.Sleep(time.Second * secondsSleep * 2 * errorsInARow)
+			continue
 		}
 
 		err = json.NewDecoder(resp.Body).Decode(&newMsgs)
 		if err != nil {
 			fmt.Println(err, resp.Body)
-			time.Sleep(time.Second * secondsSleep * 2)
+			time.Sleep(time.Second * secondsSleep * 2 * errorsInARow)
+			continue
 		}
+
+		errorsInARow = 0
 
 		if len(newMsgs) > 0 {
 			fmt.Printf("\033[1A\033[K") // Deletes the last line
