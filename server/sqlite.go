@@ -9,8 +9,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+// Thin wrapper around a sql.DB struct, in order to add some methods.
 type DBWrapper struct{ Db *sql.DB }
 
+// Opens the Database and returns a thin wrapper around it.
+// Remember to use `defer DBWrapper.Db.Close()`.
 func OpenDB() (*DBWrapper, error) {
 	db, err := sql.Open("sqlite3", "./database/messages.db")
 
@@ -22,6 +25,7 @@ func OpenDB() (*DBWrapper, error) {
 	return &DBWrapper{db}, nil
 }
 
+// Initialize the database with the needed structure, for first time setup.
 func (w *DBWrapper) Initialize() {
 	sqlStmt := `
 	create table if not exists messages (id text not null primary key, username text, timestamp integer, content text);
@@ -33,6 +37,8 @@ func (w *DBWrapper) Initialize() {
 	}
 }
 
+// Gets you all messages, excluding a username, and after a timestamp.
+// To get all messages, pass in "" and 0.
 func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 	messages := []models.Message{}
 
@@ -43,11 +49,8 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 	}
 
 	var rows *sql.Rows
-	if u == "" {
-		u = "%"
-	}
 
-	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and username like ? order by timestamp asc`)
+	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and not username = ? order by timestamp asc`)
 	if err != nil {
 		log.Fatal(err)
 		return messages
@@ -86,6 +89,7 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 	return messages
 }
 
+// Inserts a new Message, converting the Partial Message into a Message beforehand.
 func (w *DBWrapper) InsertMessage(m models.ParialMessage) {
 	tx, err := w.Db.Begin()
 	if err != nil {
