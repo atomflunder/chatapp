@@ -8,10 +8,10 @@ import (
 )
 
 type Message struct {
-	ID        string
-	Content   string
-	Timestamp int64
-	Username  string
+	ID        string `json:"id"`
+	Content   string `json:"content"`
+	Timestamp int64  `json:"timestamp"`
+	Username  string `json:"username"`
 }
 
 type ParialMessage struct {
