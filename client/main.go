@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/atomflunder/chatapp/models"
@@ -65,11 +67,17 @@ func sendLoop(cfg models.Config, username string, channel string) {
 }
 
 func writeLoop(cfg models.Config, username string, channel string) {
+	inputReader := bufio.NewReader(os.Stdin)
+
 	for {
 		var content string
 
 		fmt.Printf("%s >: ", username)
-		fmt.Scanf("%s\n", &content)
+
+		content, err := inputReader.ReadString('\n')
+		if err != nil {
+			log.Fatal("Could not read input!")
+		}
 
 		part := models.ParialMessage{Username: username, Content: content, Channel: channel}
 		message := part.GetMessage()
