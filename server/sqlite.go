@@ -68,9 +68,10 @@ func (w *DBWrapper) GetMessages(c string, u string, t int64) []models.Message {
 		var id string
 		var username string
 		var timestamp int64
+		var channel string
 		var content string
 
-		err = rows.Scan(&id, &username, &timestamp, &content)
+		err = rows.Scan(&id, &username, &timestamp, &channel, &content)
 		if err != nil {
 			log.Fatal(err)
 			return messages
