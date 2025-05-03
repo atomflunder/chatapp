@@ -61,6 +61,10 @@ func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if m.Content == "" {
+		return
+	}
+
 	h.w.InsertMessage(m)
 
 	w.Header().Set("Content-Type", "application/json")
