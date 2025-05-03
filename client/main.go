@@ -46,7 +46,7 @@ func sendLoop(cfg models.Config, username string) {
 		}
 
 		for _, msg := range newMsgs {
-			fmt.Println(msg.Format())
+			fmt.Printf("\n%s", msg.Format())
 		}
 		if len(newMsgs) > 0 {
 			fmt.Printf("\n%s (%s): ", username, time.Now().Format(time.TimeOnly))
