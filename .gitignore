@@ -2,3 +2,5 @@
 *.exe
 chatapp
 output/**
+client
+server
