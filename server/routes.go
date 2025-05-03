@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/atomflunder/chatapp/models"
 )
@@ -25,27 +27,26 @@ func (h *Handler) RegisterRoutes() *http.ServeMux {
 }
 
 func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("New GET Messages Request received from %s\n", r.RemoteAddr)
+
 	query := r.URL.Query()
 	username := query.Get("Username")
+	since := query.Get("Since")
 
-	var ms []models.Message
-	if username != "" {
-		ms = h.w.GetMessagesFromUser(username)
-	} else {
-		ms = h.w.GetMessages()
+	time, err := strconv.Atoi(since)
+	if err != nil {
+		time = 0
 	}
 
-	var output string
-
-	for _, m := range ms {
-		output += m.Format()
-	}
+	var ms []models.Message = h.w.GetMessages(username, int64(time))
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(output)
+	json.NewEncoder(w).Encode(ms)
 }
 
 func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("New POST Messages Request received from %s\n", r.RemoteAddr)
+
 	var m models.ParialMessage
 
 	body, err := io.ReadAll(r.Body)

@@ -32,38 +32,7 @@ func (w *DBWrapper) Initialize() {
 		return
 	}
 }
-
-func (w *DBWrapper) GetMessages() []models.Message {
-	messages := []models.Message{}
-
-	rows, err := w.Db.Query(`select * from messages`)
-	if err != nil {
-		log.Fatal(err)
-		return messages
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id string
-		var username string
-		var timestamp int64
-		var content string
-
-		err = rows.Scan(&id, &username, &timestamp, &content)
-		if err != nil {
-			log.Fatal(err)
-			return messages
-		}
-
-		message := models.Message{ID: id, Username: username, Timestamp: timestamp, Content: content}
-
-		messages = append(messages, message)
-	}
-
-	return messages
-}
-
-func (w *DBWrapper) GetMessagesFromUser(u string) []models.Message {
+func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 	messages := []models.Message{}
 
 	tx, err := w.Db.Begin()
@@ -72,16 +41,31 @@ func (w *DBWrapper) GetMessagesFromUser(u string) []models.Message {
 		return messages
 	}
 
-	stmt, err := tx.Prepare(`select * from messages where username = ?`)
-	if err != nil {
-		log.Fatal(err)
-		return messages
-	}
+	var rows *sql.Rows
+	if u == "" {
+		stmt, err := tx.Prepare(`select * from messages where timestamp >= ?`)
+		if err != nil {
+			log.Fatal(err)
+			return messages
+		}
 
-	rows, err := stmt.Query(u)
-	if err != nil {
-		log.Fatal(err)
-		return messages
+		rows, err = stmt.Query(t)
+		if err != nil {
+			log.Fatal(err)
+			return messages
+		}
+	} else {
+		stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and username = ?`)
+		if err != nil {
+			log.Fatal(err)
+			return messages
+		}
+
+		rows, err = stmt.Query(t, u)
+		if err != nil {
+			log.Fatal(err)
+			return messages
+		}
 	}
 	defer rows.Close()
 
