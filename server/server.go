@@ -9,8 +9,8 @@ import (
 )
 
 func InitializeRoutes(w *DBWrapper) {
-	handler := NewHandler(w)
-	messageRouter := handler.RegisterRoutes()
+	handler := newHandler(w)
+	messageRouter := handler.registerRoutes()
 
 	router := http.NewServeMux()
 	router.Handle("/", messageRouter)

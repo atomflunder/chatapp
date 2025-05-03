@@ -11,7 +11,7 @@ func main() {
 	}
 	defer w.Db.Close()
 
-	w.Initialize()
+	w.initialize()
 
 	InitializeRoutes(w)
 }

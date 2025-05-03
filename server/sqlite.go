@@ -26,7 +26,7 @@ func OpenDB() (*DBWrapper, error) {
 }
 
 // Initialize the database with the needed structure, for first time setup.
-func (w *DBWrapper) Initialize() {
+func (w *DBWrapper) initialize() {
 	sqlStmt := `
 	create table if not exists messages (id text not null primary key, username text, timestamp integer, channel text, content text);
 	`
@@ -39,7 +39,7 @@ func (w *DBWrapper) Initialize() {
 
 // Gets you all messages in a channel, excluding a username, and after a timestamp.
 // To get all messages in a channel, pass in "" and 0.
-func (w *DBWrapper) GetMessages(c string, u string, t int64) []models.Message {
+func (w *DBWrapper) getMessages(c string, u string, t int64) []models.Message {
 	messages := []models.Message{}
 
 	tx, err := w.Db.Begin()
@@ -91,7 +91,7 @@ func (w *DBWrapper) GetMessages(c string, u string, t int64) []models.Message {
 }
 
 // Inserts a new Message, converting the Partial Message into a Message beforehand.
-func (w *DBWrapper) InsertMessage(m models.ParialMessage) {
+func (w *DBWrapper) insertMessage(m models.ParialMessage) {
 	tx, err := w.Db.Begin()
 	if err != nil {
 		log.Fatal(err)

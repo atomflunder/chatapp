@@ -14,11 +14,11 @@ type Handler struct {
 	w *DBWrapper
 }
 
-func NewHandler(w *DBWrapper) *Handler {
+func newHandler(w *DBWrapper) *Handler {
 	return &Handler{w}
 }
 
-func (h *Handler) RegisterRoutes() *http.ServeMux {
+func (h *Handler) registerRoutes() *http.ServeMux {
 	r := http.NewServeMux()
 	r.HandleFunc("GET /messages", h.getMessages)
 	r.HandleFunc("POST /messages/new", h.postMessage)
@@ -39,7 +39,7 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 		time = 0
 	}
 
-	var ms []models.Message = h.w.GetMessages(channel, username, int64(time))
+	var ms []models.Message = h.w.getMessages(channel, username, int64(time))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(ms)
@@ -66,7 +66,7 @@ func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.w.InsertMessage(m)
+	h.w.insertMessage(m)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
