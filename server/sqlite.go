@@ -46,7 +46,7 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 		u = "%"
 	}
 
-	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and username like ?`)
+	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and username like ? order by timestamp asc`)
 	if err != nil {
 		log.Fatal(err)
 		return messages
