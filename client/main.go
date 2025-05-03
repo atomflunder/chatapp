@@ -38,7 +38,17 @@ func main() {
 
 		config := models.GetConfig()
 
-		resp, err := http.Post(fmt.Sprintf("http://%s:%s/messages/new", config.Host, config.Port), "application/json", bytes.NewBuffer([]byte(messageJSON)))
+		req, err := http.NewRequest("POST", fmt.Sprintf("http://%s:%s/messages/new", config.Host, config.Port), bytes.NewBuffer([]byte(messageJSON)))
+		if err != nil {
+			log.Fatal("Error sending request!")
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Connection", "keep-alive")
+
+		client := &http.Client{}
+
+		resp, err := client.Do(req)
 		if err != nil {
 			log.Fatal("Error sending request!")
 		}
