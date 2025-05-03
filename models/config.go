@@ -7,7 +7,7 @@ type Config struct {
 
 func GetConfig() Config {
 	return Config{
-		Host: "http://localhost",
+		Host: "localhost",
 		Port: "8080",
 	}
 }

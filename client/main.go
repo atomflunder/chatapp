@@ -37,7 +37,7 @@ func main() {
 
 		config := models.GetConfig()
 
-		_, err = http.Post(fmt.Sprintf("%s:%s/messages/new", config.Host, config.Port), "application/json", bytes.NewBuffer([]byte(messageJSON)))
+		_, err = http.Post(fmt.Sprintf("http://%s:%s/messages/new", config.Host, config.Port), "application/json", bytes.NewBuffer([]byte(messageJSON)))
 
 		if err != nil {
 			log.Fatal("Error sending request!")
