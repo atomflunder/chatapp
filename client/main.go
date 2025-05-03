@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/atomflunder/chatapp/models"
@@ -78,6 +79,8 @@ func writeLoop(cfg models.Config, username string, channel string) {
 		if err != nil {
 			log.Fatal("Could not read input!")
 		}
+
+		content = strings.TrimSuffix(content, "\n")
 
 		part := models.ParialMessage{Username: username, Content: content, Channel: channel}
 		message := part.GetMessage()
