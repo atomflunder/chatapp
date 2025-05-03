@@ -32,6 +32,7 @@ func (w *DBWrapper) Initialize() {
 		return
 	}
 }
+
 func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 	messages := []models.Message{}
 
@@ -51,13 +52,13 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 		log.Fatal(err)
 		return messages
 	}
+	defer stmt.Close()
 
 	rows, err = stmt.Query(t, u)
 	if err != nil {
 		log.Fatal(err)
 		return messages
 	}
-
 	defer rows.Close()
 
 	for rows.Next() {
@@ -76,6 +77,8 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 
 		messages = append(messages, message)
 	}
+
+	tx.Commit()
 
 	return messages
 }
