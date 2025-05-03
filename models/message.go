@@ -27,6 +27,7 @@ func (p ParialMessage) GetMessage() Message {
 		Timestamp: time.Now().UnixMilli(),
 		Username:  p.Username,
 		Content:   p.Content,
+		Channel:   p.Channel,
 	}
 }
 
