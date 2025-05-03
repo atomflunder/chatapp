@@ -78,7 +78,10 @@ func (w *DBWrapper) GetMessages(u string, t int64) []models.Message {
 		messages = append(messages, message)
 	}
 
-	tx.Commit()
+	err = tx.Commit()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	return messages
 }
