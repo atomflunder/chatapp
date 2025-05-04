@@ -1,9 +1,9 @@
 # chatapp
 
 Small & lightweight go webserver & chat client for live chat messenging application in your terminal.  
-Communication runs via http, see also the [OpenAPI Spec](./openapi.yaml).
-
 You can choose a username and a channel to connect to, and then start chatting with others or just yourself.
+
+Communication runs via http, see also the [OpenAPI Spec](./openapi.yaml). The server also stores the messages in a SQLite Database.
 
 ## Demo
 
