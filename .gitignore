@@ -4,3 +4,4 @@ chatapp
 output/**
 client/client
 server/server
+debug.log
