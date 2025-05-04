@@ -1,5 +1,10 @@
-name: Go Project CI
-on: [push]
+name: Go Project CI - Server
+on:
+    push:
+        paths:
+            - "server/**"
+            - "models/**"
+            - ".github/workflows/server.yml"
 
 jobs:
     build:
@@ -12,10 +17,10 @@ jobs:
               with:
                   go-version: "1.24.x"
 
+            - name: Install Dependencies
+              run: go get .
             - name: Server Directory
               run: cd ./server
-            - name: Install Server Dependencies
-              run: go get .
             - name: Build Server
               run: go build
             - name: Test Server
