@@ -20,6 +20,10 @@ func main() {
 		log.Fatal("Could not read input!")
 	}
 
+	if username == "system" {
+		log.Fatal("Username cannot be system")
+	}
+
 	fmt.Println("Type in the channel you want to connect to: ")
 	channel, err := getInput(inputReader)
 	if err != nil {
