@@ -11,12 +11,11 @@ import (
 )
 
 type model struct {
-	username    string
-	channel     string
-	messages    []models.Message
-	viewport    viewport.Model
-	textarea    textarea.Model
-	senderStyle lipgloss.Style
+	username string
+	channel  string
+	messages []models.Message
+	viewport viewport.Model
+	textarea textarea.Model
 }
 
 type updateMessage struct {
@@ -39,18 +38,17 @@ func initialModel(username string, channel string) model {
 
 	ta.ShowLineNumbers = false
 
-	vp := viewport.New(128, 25)
-	vp.SetContent(fmt.Sprintf("Chatroom %s", channel))
+	vp := viewport.New(128, 30)
+	vp.SetContent(fmt.Sprintf("Chatroom #%s", channel))
 
 	ta.KeyMap.InsertNewline.SetEnabled(false)
 
 	return model{
-		username:    username,
-		channel:     channel,
-		messages:    messages,
-		textarea:    ta,
-		viewport:    vp,
-		senderStyle: lipgloss.NewStyle().Foreground(lipgloss.Color("5")),
+		username: username,
+		channel:  channel,
+		messages: messages,
+		textarea: ta,
+		viewport: vp,
 	}
 }
 
@@ -74,23 +72,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.viewport.Height = msg.Height - m.textarea.Height() - lipgloss.Height("\n\n")
 
 		if len(m.messages) > 0 {
-			s := ""
-			for _, msg := range m.messages {
-				s += fmt.Sprintf("%s\n", msg.Format())
-			}
-			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(s))
+			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
 		}
 		m.viewport.GotoBottom()
 	case updateMessage:
 		newMessages := getMessages(m.username, m.channel, int64(msg.lastUpdate))
 		m.messages = append(m.messages, newMessages...)
-
-		s := ""
-		for _, msg := range m.messages {
-			s += fmt.Sprintf("%s\n", msg.Format())
-		}
-
-		m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(s))
+		m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
@@ -107,11 +95,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			postMessage(message)
 
-			s := ""
-			for _, msg := range m.messages {
-				s += fmt.Sprintf("%s\n", msg.Format())
-			}
-			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(s))
+			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
 
 			m.textarea.Reset()
 			m.viewport.GotoBottom()
@@ -130,4 +114,14 @@ func (m model) View() string {
 		"\n\n",
 		m.textarea.View(),
 	)
+}
+
+func (m model) formatMessages() string {
+
+	s := fmt.Sprintf("You're logged in to #%s as %s - Start chatting!\n", m.channel, m.username)
+	for _, msg := range m.messages {
+		s += fmt.Sprintf("%s\n", msg.Format())
+	}
+
+	return s
 }
