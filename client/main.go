@@ -20,8 +20,8 @@ func main() {
 		log.Fatal("Could not read input!")
 	}
 
-	if username == "system" {
-		log.Fatal("Username cannot be system")
+	if username == "system" || strings.Contains(username, " ") {
+		log.Fatal("Invalid username")
 	}
 
 	fmt.Println("Type in the channel you want to connect to: ")
