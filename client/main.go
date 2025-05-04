@@ -44,6 +44,7 @@ func main() {
 	}
 }
 
+// Gets the user input in a line and cuts off the new line character at the end.
 func getInput(reader *bufio.Reader) (string, error) {
 	input, err := reader.ReadString('\n')
 
@@ -56,6 +57,7 @@ func getInput(reader *bufio.Reader) (string, error) {
 	return input, nil
 }
 
+// Sends the updateMessage to the tea.Update function, which triggers a re-fetch of the messages since the last update.
 func fetchNewMessages(p *tea.Program) {
 	var secondsSleep time.Duration = 2
 

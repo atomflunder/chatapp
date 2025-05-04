@@ -26,7 +26,10 @@ func (h *Handler) registerRoutes() *http.ServeMux {
 	return r
 }
 
+// Handles routing.
+// Needs to handle every route, because the channel URL param is dynamic.
 func (h *Handler) routeHandler(w http.ResponseWriter, r *http.Request) {
+
 	params := strings.Split(strings.TrimPrefix(r.URL.Path, "/channels/"), "/")
 
 	if len(params) != 2 {
@@ -54,6 +57,7 @@ func (h *Handler) routeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// Fetches the requested messages out of the database.
 func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request, channel string) {
 	fmt.Printf("New GET Messages Request received from %s\n", r.RemoteAddr)
 
@@ -72,6 +76,7 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request, channel st
 	json.NewEncoder(w).Encode(ms)
 }
 
+// Writes a new message to the database.
 func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request, channel string) {
 	fmt.Printf("New POST Messages Request received from %s\n", r.RemoteAddr)
 

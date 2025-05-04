@@ -76,6 +76,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.viewport.GotoBottom()
 	case updateMessage:
+		// Fetches new messages since updateMessage.lastUpdate
 		newMessages := getMessages(m.username, m.channel, int64(msg.lastUpdate))
 		m.messages = append(m.messages, newMessages...)
 		m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
@@ -86,6 +87,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			fmt.Println(m.textarea.Value())
 			return m, tea.Quit
 		case tea.KeyEnter:
+			// Handles sending messages
 			partialMessage := models.PartialMessage{
 				Content:  m.textarea.Value(),
 				Username: m.username,

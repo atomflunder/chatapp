@@ -20,6 +20,7 @@ type PartialMessage struct {
 	Username string
 }
 
+// Builds a full message from a partial one.
 func (p PartialMessage) GetMessage(channel string) Message {
 	return Message{
 		ID:        uuid.NewString(),
@@ -30,6 +31,7 @@ func (p PartialMessage) GetMessage(channel string) Message {
 	}
 }
 
+// Formats a message in a nice readable format.
 func (m Message) Format() string {
 	return fmt.Sprintf("%s (%s):\n%s", m.Username, time.Unix(0, m.Timestamp*int64(time.Millisecond)).Format(time.TimeOnly), m.Content)
 }

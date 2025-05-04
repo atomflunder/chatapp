@@ -5,14 +5,17 @@ import (
 	"math"
 )
 
+// Gets a color code from a string.
+// Used for coloring in chat messages in the color of the username.
 func calculateColorCode(s string) string {
 	hash := 0
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		hash = int([]rune(s)[i]) + ((hash << 5) - hash)
 	}
 
 	hue := float64(hash % 360)
 
+	// We calculate in hsl first in order to make the colors not too dim.
 	sat := 1.0
 	light := 0.5
 

@@ -12,6 +12,7 @@ import (
 	"github.com/atomflunder/chatapp/models"
 )
 
+// Posts a new message to the server.
 func postMessage(message models.Message) {
 	cfg := models.GetConfig()
 
@@ -28,9 +29,9 @@ func postMessage(message models.Message) {
 	defer resp.Body.Close()
 
 	io.Copy(io.Discard, resp.Body)
-
 }
 
+// Gets messages from every user except the passed in username, in a channel, after the passed in timestamp.
 func getMessages(username string, channel string, timestamp int64) []models.Message {
 	cfg := models.GetConfig()
 
