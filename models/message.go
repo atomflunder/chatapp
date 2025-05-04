@@ -15,19 +15,18 @@ type Message struct {
 	Channel   string `json:"channel"`
 }
 
-type ParialMessage struct {
+type PartialMessage struct {
 	Content  string
 	Username string
-	Channel  string
 }
 
-func (p ParialMessage) GetMessage() Message {
+func (p PartialMessage) GetMessage(channel string) Message {
 	return Message{
 		ID:        uuid.NewString(),
 		Timestamp: time.Now().UnixMilli(),
 		Username:  p.Username,
 		Content:   p.Content,
-		Channel:   p.Channel,
+		Channel:   channel,
 	}
 }
 

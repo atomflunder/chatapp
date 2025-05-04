@@ -91,7 +91,7 @@ func (w *DBWrapper) getMessages(c string, u string, t int64) []models.Message {
 }
 
 // Inserts a new Message, converting the Partial Message into a Message beforehand.
-func (w *DBWrapper) insertMessage(m models.ParialMessage) {
+func (w *DBWrapper) insertMessage(m models.PartialMessage, channel string) {
 	tx, err := w.Db.Begin()
 	if err != nil {
 		log.Fatal(err)
@@ -102,7 +102,7 @@ func (w *DBWrapper) insertMessage(m models.ParialMessage) {
 	}
 	defer stmt.Close()
 
-	message := m.GetMessage()
+	message := m.GetMessage(channel)
 
 	_, err = stmt.Exec(message.ID, message.Username, message.Timestamp, message.Channel, message.Content)
 	if err != nil {

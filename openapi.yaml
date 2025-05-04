@@ -8,12 +8,18 @@ servers:
 tags:
   - name: messages
 paths:
-  /messages:
+  /{channelID}/messages:
     get:
       summary: Get messages
       description: Get messages
       operationId: getMessages
       parameters: 
+        - in: path
+          name: channelID
+          schema:
+            type: integer
+          required: true
+          description: Channel to search for messages in
         - in: query
           name: Username
           schema:
@@ -45,11 +51,17 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-  /messages/new:
     post:
       summary: Insert a new message
       description: Insert a new message
       operationId: insertMessage
+      parameters: 
+        - in: path
+          name: channelID
+          schema:
+            type: integer
+          required: true
+          description: Channel to search for messages in
       requestBody:
         required: true
         content:

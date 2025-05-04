@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/atomflunder/chatapp/models"
 )
@@ -20,18 +21,44 @@ func newHandler(w *DBWrapper) *Handler {
 
 func (h *Handler) registerRoutes() *http.ServeMux {
 	r := http.NewServeMux()
-	r.HandleFunc("GET /messages", h.getMessages)
-	r.HandleFunc("POST /messages/new", h.postMessage)
+	r.HandleFunc("/channels/", h.routeHandler)
 
 	return r
 }
 
-func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) routeHandler(w http.ResponseWriter, r *http.Request) {
+	params := strings.Split(strings.TrimPrefix(r.URL.Path, "/channels/"), "/")
+
+	if len(params) != 2 {
+		http.Error(w, "Invalid route", http.StatusNotFound)
+		return
+	}
+
+	channel, m := params[0], params[1]
+
+	if m != "messages" {
+		http.Error(w, "Invalid route", http.StatusNotFound)
+		return
+	}
+
+	switch r.Method {
+	case "GET":
+		h.getMessages(w, r, channel)
+		return
+	case "POST":
+		h.postMessage(w, r, channel)
+		return
+	default:
+		http.Error(w, "Error reading Body", http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request, channel string) {
 	fmt.Printf("New GET Messages Request received from %s\n", r.RemoteAddr)
 
 	query := r.URL.Query()
 	username := query.Get("Username")
-	channel := query.Get("Channel")
 	since := query.Get("Since")
 
 	time, err := strconv.Atoi(since)
@@ -45,10 +72,10 @@ func (h *Handler) getMessages(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(ms)
 }
 
-func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request, channel string) {
 	fmt.Printf("New POST Messages Request received from %s\n", r.RemoteAddr)
 
-	var m models.ParialMessage
+	var m models.PartialMessage
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -66,7 +93,7 @@ func (h *Handler) postMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.w.insertMessage(m)
+	h.w.insertMessage(m, channel)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

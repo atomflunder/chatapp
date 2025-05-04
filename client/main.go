@@ -18,6 +18,7 @@ import (
 func main() {
 	var username string
 
+	// TODO: Maybe also remove these scans for bufio reader
 	fmt.Println("Hi, please type in your Username: ")
 	fmt.Scan(&username)
 
@@ -53,6 +54,7 @@ func sendLoop(cfg models.Config, username string, channel string) {
 			fmt.Println(err, resp.Body)
 		}
 
+		// TODO: Make your already typed in message not disappear when another user sends one
 		if len(newMsgs) > 0 {
 			fmt.Printf("\033[1A\033[K") // Deletes the last line
 			for _, msg := range newMsgs {
@@ -82,8 +84,8 @@ func writeLoop(cfg models.Config, username string, channel string) {
 
 		content = strings.TrimSuffix(content, "\n")
 
-		part := models.ParialMessage{Username: username, Content: content, Channel: channel}
-		message := part.GetMessage()
+		part := models.PartialMessage{Username: username, Content: content}
+		message := part.GetMessage(channel)
 
 		messageJSON, err := json.Marshal(message)
 
