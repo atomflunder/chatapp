@@ -30,14 +30,14 @@ func (h *Handler) routeHandler(w http.ResponseWriter, r *http.Request) {
 	params := strings.Split(strings.TrimPrefix(r.URL.Path, "/channels/"), "/")
 
 	if len(params) != 2 {
-		http.Error(w, "Invalid route", http.StatusNotFound)
+		http.Error(w, "Route not found", http.StatusNotFound)
 		return
 	}
 
 	channel, m := params[0], params[1]
 
 	if m != "messages" {
-		http.Error(w, "Invalid route", http.StatusNotFound)
+		http.Error(w, "Route not found", http.StatusNotFound)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *Handler) routeHandler(w http.ResponseWriter, r *http.Request) {
 		h.postMessage(w, r, channel)
 		return
 	default:
-		http.Error(w, "Error reading Body", http.StatusInternalServerError)
+		http.Error(w, "Invalid Method", http.StatusMethodNotAllowed)
 		return
 	}
 }
