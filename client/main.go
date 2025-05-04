@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
@@ -31,7 +32,7 @@ func main() {
 
 	p := tea.NewProgram(initialModel(username, channel))
 
-	go sendLoop(p)
+	go fetchNewMessages(p)
 
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %s", err)
@@ -49,4 +50,15 @@ func getInput(reader *bufio.Reader) (string, error) {
 	input = strings.TrimSuffix(input, "\n")
 
 	return input, nil
+}
+
+func fetchNewMessages(p *tea.Program) {
+	var secondsSleep time.Duration = 2
+
+	for {
+		p.Send(updateMessage{
+			lastUpdate: time.Now().UnixMilli() - (int64(secondsSleep * 1000)),
+		})
+		time.Sleep(time.Second * secondsSleep)
+	}
 }

@@ -7,10 +7,8 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/atomflunder/chatapp/models"
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 func postMessage(message models.Message) {
@@ -55,15 +53,4 @@ func getMessages(username string, channel string, timestamp int64) []models.Mess
 	}
 
 	return newMsgs
-}
-
-func sendLoop(p *tea.Program) {
-	var secondsSleep time.Duration = 2
-
-	for {
-		p.Send(updateMessage{
-			lastUpdate: time.Now().UnixMilli() - (int64(secondsSleep * 1000)),
-		})
-		time.Sleep(time.Second * secondsSleep)
-	}
 }
