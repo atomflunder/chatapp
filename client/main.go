@@ -16,24 +16,43 @@ import (
 )
 
 func main() {
-	var username string
+	inputReader := bufio.NewReader(os.Stdin)
 
-	// TODO: Maybe also remove these scans for bufio reader
 	fmt.Println("Hi, please type in your Username: ")
-	fmt.Scan(&username)
-
-	var channel string
+	username, err := getInput(inputReader)
+	if err != nil {
+		log.Fatal("Could not read input!")
+	}
 
 	fmt.Println("Type in the channel you want to connect to: ")
-	fmt.Scan(&channel)
+	channel, err := getInput(inputReader)
+	if err != nil {
+		log.Fatal("Could not read input!")
+	}
+
+	if strings.Contains(channel, " ") {
+		log.Fatal("Channel IDs cannot have spaces in them")
+	}
 
 	fmt.Printf("Connecting to %s\n", channel)
 
 	cfg := models.GetConfig()
 
 	go sendLoop(cfg, username, channel)
-	writeLoop(cfg, username, channel)
+	writeLoop(cfg, username, channel, inputReader)
 
+}
+
+func getInput(reader *bufio.Reader) (string, error) {
+	input, err := reader.ReadString('\n')
+
+	if err != nil {
+		return "", err
+	}
+
+	input = strings.TrimSuffix(input, "\n")
+
+	return input, nil
 }
 
 func sendLoop(cfg models.Config, username string, channel string) {
@@ -47,6 +66,10 @@ func sendLoop(cfg models.Config, username string, channel string) {
 		resp, err := http.Get(fmt.Sprintf("http://%s:%s/channels/%s/messages?Since=%d&Username=%s", cfg.Host, cfg.Port, channel, timestamp, username))
 		if err != nil {
 			fmt.Println("Could not get new messages")
+		}
+
+		if resp.StatusCode != 200 {
+			fmt.Printf("Received status %d\n", resp.StatusCode)
 		}
 
 		err = json.NewDecoder(resp.Body).Decode(&newMsgs)
@@ -69,20 +92,14 @@ func sendLoop(cfg models.Config, username string, channel string) {
 	}
 }
 
-func writeLoop(cfg models.Config, username string, channel string) {
-	inputReader := bufio.NewReader(os.Stdin)
-
+func writeLoop(cfg models.Config, username string, channel string, reader *bufio.Reader) {
 	for {
-		var content string
-
 		fmt.Printf("%s >: ", username)
 
-		content, err := inputReader.ReadString('\n')
+		content, err := getInput(reader)
 		if err != nil {
 			log.Fatal("Could not read input!")
 		}
-
-		content = strings.TrimSuffix(content, "\n")
 
 		part := models.PartialMessage{Username: username, Content: content}
 		message := part.GetMessage(channel)
