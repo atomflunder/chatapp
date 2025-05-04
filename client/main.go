@@ -44,7 +44,7 @@ func sendLoop(cfg models.Config, username string, channel string) {
 
 		var newMsgs []models.Message
 
-		resp, err := http.Get(fmt.Sprintf("http://%s:%s/messages?Since=%d&Channel=%s&Username=%s", cfg.Host, cfg.Port, timestamp, channel, username))
+		resp, err := http.Get(fmt.Sprintf("http://%s:%s/channels/%s/messages?Since=%d&Username=%s", cfg.Host, cfg.Port, channel, timestamp, username))
 		if err != nil {
 			fmt.Println("Could not get new messages")
 		}
@@ -93,7 +93,7 @@ func writeLoop(cfg models.Config, username string, channel string) {
 			log.Fatal("Could not marshal message content")
 		}
 
-		resp, err := http.Post(fmt.Sprintf("http://%s:%s/messages/new", cfg.Host, cfg.Port), "application/json", bytes.NewBuffer([]byte(messageJSON)))
+		resp, err := http.Post(fmt.Sprintf("http://%s:%s/channels/%s/messages", cfg.Host, cfg.Port, channel), "application/json", bytes.NewBuffer([]byte(messageJSON)))
 		if err != nil {
 			log.Fatal("Error sending request!")
 		}

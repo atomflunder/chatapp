@@ -8,7 +8,7 @@ servers:
 tags:
   - name: messages
 paths:
-  /{channelID}/messages:
+  /channels/{channelID}/messages:
     get:
       summary: Get messages
       description: Get messages
