@@ -7,7 +7,7 @@ Communication runs via http, see also the [OpenAPI Spec](./openapi.yaml). The se
 
 ## Demo
 
-![Demonstration](./assets/demo.gif)
+![Demonstration](./assets/demo.webp)
 
 ## Run locally
 
