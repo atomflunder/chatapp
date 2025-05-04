@@ -79,6 +79,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		newMessages := getMessages(m.username, m.channel, int64(msg.lastUpdate))
 		m.messages = append(m.messages, newMessages...)
 		m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
+		m.viewport.GotoBottom()
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyCtrlC, tea.KeyEsc:
@@ -117,10 +118,25 @@ func (m model) View() string {
 }
 
 func (m model) formatMessages() string {
+	defaultStyle := lipgloss.NewStyle().Width(m.viewport.Width - 8).BorderStyle(lipgloss.RoundedBorder())
+	systemStyle := defaultStyle.Foreground(lipgloss.Color("#ff0000"))
 
 	s := fmt.Sprintf("You're logged in to #%s as %s - Start chatting!\n", m.channel, m.username)
 	for _, msg := range m.messages {
-		s += fmt.Sprintf("%s\n", msg.Format())
+		switch msg.Username {
+		case "system":
+			s += systemStyle.Render(msg.Format())
+		case m.username:
+			color := calculateColorCode(msg.Username)
+			style := defaultStyle.Foreground(lipgloss.Color(color)).Align(lipgloss.Right)
+			s += style.Render(msg.Format())
+		default:
+			color := calculateColorCode(msg.Username)
+			style := defaultStyle.Foreground(lipgloss.Color(color)).Align(lipgloss.Left)
+			s += style.Render(msg.Format())
+		}
+
+		s += "\n"
 	}
 
 	return s
