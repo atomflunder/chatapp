@@ -1,0 +1,21 @@
+name: Go Project CI - Client
+on: [push]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+            - name: Setup Go
+              uses: actions/setup-go@v5
+              with:
+                  go-version: "1.24.x"
+
+            - name: Install Dependencies
+              run: go get ./...
+            - name: Build Server & Client
+              run: go build ./...
+            - name: Test All Directories
+              run: go test ./...
+
