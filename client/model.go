@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/gorilla/websocket"
 )
 
 type model struct {
@@ -16,13 +17,14 @@ type model struct {
 	messages []models.Message
 	viewport viewport.Model
 	textarea textarea.Model
+	ws       *websocket.Conn
 }
 
-type updateMessage struct {
-	lastUpdate int64
+type newMessage struct {
+	message models.Message
 }
 
-func initialModel(username string, channel string) model {
+func initialModel(username string, channel string, ws *websocket.Conn) model {
 	messages := []models.Message{}
 
 	ta := textarea.New()
@@ -49,6 +51,7 @@ func initialModel(username string, channel string) model {
 		messages: messages,
 		textarea: ta,
 		viewport: vp,
+		ws:       ws,
 	}
 }
 
@@ -75,10 +78,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
 		}
 		m.viewport.GotoBottom()
-	case updateMessage:
-		// Fetches new messages since updateMessage.lastUpdate
-		newMessages := getMessages(m.username, m.channel, int64(msg.lastUpdate))
-		m.messages = append(m.messages, newMessages...)
+	case newMessage:
+		m.messages = append(m.messages, msg.message)
 		m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
 		m.viewport.GotoBottom()
 	case tea.KeyMsg:
@@ -91,12 +92,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			partialMessage := models.PartialMessage{
 				Content:  m.textarea.Value(),
 				Username: m.username,
+				Channel:  m.channel,
 			}
-			message := partialMessage.GetMessage(m.channel)
+			message := partialMessage.GetMessage()
 
 			m.messages = append(m.messages, message)
 
-			postMessage(message)
+			m.ws.WriteJSON(message)
 
 			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
 

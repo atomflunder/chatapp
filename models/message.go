@@ -16,18 +16,19 @@ type Message struct {
 }
 
 type PartialMessage struct {
-	Content  string
-	Username string
+	Content  string `json:"content"`
+	Username string `json:"username"`
+	Channel  string `json:"channel"`
 }
 
 // Builds a full message from a partial one.
-func (p PartialMessage) GetMessage(channel string) Message {
+func (p PartialMessage) GetMessage() Message {
 	return Message{
 		ID:        uuid.NewString(),
 		Timestamp: time.Now().UnixMilli(),
 		Username:  p.Username,
 		Content:   p.Content,
-		Channel:   channel,
+		Channel:   p.Channel,
 	}
 }
 

@@ -2,29 +2,36 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
+	"strings"
 
 	"github.com/atomflunder/chatapp/models"
 )
 
 func main() {
-	w, err := OpenDB()
-	if err != nil {
-		log.Fatal("Error opening database")
-	}
-	defer w.Db.Close()
+	hub := newHub()
+	go hub.run()
+	defer hub.dbWrapper.Db.Close()
 
-	w.initialize()
+	http.HandleFunc("/channels/", func(w http.ResponseWriter, r *http.Request) {
+		params := strings.Split(strings.TrimPrefix(r.URL.Path, "/channels/"), "/")
 
-	handler := newHandler(w)
-	messageRouter := handler.registerRoutes()
+		if len(params) != 3 {
+			http.Error(w, "Route not found", http.StatusNotFound)
+			return
+		}
 
-	router := http.NewServeMux()
-	router.Handle("/", messageRouter)
+		channel, u, username := params[0], params[1], params[2]
 
-	config := models.GetConfig()
+		if u != "user" {
+			return
+		}
 
-	fmt.Println("Server up and running!")
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", config.Host, config.Port), router))
+		serveWs(hub, w, r, username, channel)
+	})
+
+	cfg := models.GetConfig()
+
+	fmt.Println("Server up and running")
+	http.ListenAndServe(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port), nil)
 }
