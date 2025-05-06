@@ -37,61 +37,8 @@ func (w *DBWrapper) initialize() {
 	}
 }
 
-// Gets you all messages in a channel, excluding a username, and after a timestamp.
-// To get all messages in a channel, pass in "" and 0.
-func (w *DBWrapper) getMessages(c string, u string, t int64) []models.Message {
-	messages := []models.Message{}
-
-	tx, err := w.Db.Begin()
-	if err != nil {
-		log.Fatal(err)
-		return messages
-	}
-
-	var rows *sql.Rows
-
-	stmt, err := tx.Prepare(`select * from messages where timestamp >= ? and channel = ? and not username = ? order by timestamp asc`)
-	if err != nil {
-		log.Fatal(err)
-		return messages
-	}
-	defer stmt.Close()
-
-	rows, err = stmt.Query(t, c, u)
-	if err != nil {
-		log.Fatal(err)
-		return messages
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var id string
-		var username string
-		var timestamp int64
-		var channel string
-		var content string
-
-		err = rows.Scan(&id, &username, &timestamp, &channel, &content)
-		if err != nil {
-			log.Fatal(err)
-			return messages
-		}
-
-		message := models.Message{ID: id, Username: username, Timestamp: timestamp, Content: content}
-
-		messages = append(messages, message)
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	return messages
-}
-
 // Inserts a new Message, converting the Partial Message into a Message beforehand.
-func (w *DBWrapper) insertMessage(m models.PartialMessage, channel string) {
+func (w *DBWrapper) insertMessage(m models.PartialMessage) {
 	tx, err := w.Db.Begin()
 	if err != nil {
 		log.Fatal(err)
@@ -102,7 +49,7 @@ func (w *DBWrapper) insertMessage(m models.PartialMessage, channel string) {
 	}
 	defer stmt.Close()
 
-	message := m.GetMessage(channel)
+	message := m.GetMessage()
 
 	_, err = stmt.Exec(message.ID, message.Username, message.Timestamp, message.Channel, message.Content)
 	if err != nil {
@@ -114,5 +61,5 @@ func (w *DBWrapper) insertMessage(m models.PartialMessage, channel string) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Got new message", message.ID)
+	fmt.Println("SQLite: Inserted new message", message.ID)
 }

@@ -10,9 +10,10 @@ func TestPartialMessage_GetMessage(t *testing.T) {
 	p := PartialMessage{
 		Content:  "Hello, world!",
 		Username: "alice",
+		Channel:  "general",
 	}
 	channel := "general"
-	msg := p.GetMessage(channel)
+	msg := p.GetMessage()
 
 	if msg.Content != p.Content {
 		t.Errorf("Expected content %q, got %q", p.Content, msg.Content)

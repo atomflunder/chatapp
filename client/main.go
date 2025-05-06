@@ -6,9 +6,10 @@ import (
 	"log"
 	"os"
 	"strings"
-	"time"
 
+	"github.com/atomflunder/chatapp/models"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -34,9 +35,17 @@ func main() {
 		log.Fatal("Channel IDs cannot have spaces in them")
 	}
 
-	p := tea.NewProgram(initialModel(username, channel))
+	cfg := models.GetConfig()
+	c, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/channels/%s/user/%s", cfg.Host, cfg.Port, channel, username), nil)
 
-	go fetchNewMessages(p)
+	if err != nil {
+		log.Fatal("Failed to connect to websocket")
+	}
+	defer c.Close()
+
+	p := tea.NewProgram(initialModel(username, channel, c))
+
+	go fetchNewMessages(p, c)
 
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Error: %s", err)
@@ -57,14 +66,17 @@ func getInput(reader *bufio.Reader) (string, error) {
 	return input, nil
 }
 
-// Sends the updateMessage to the tea.Update function, which triggers a re-fetch of the messages since the last update.
-func fetchNewMessages(p *tea.Program) {
-	var secondsSleep time.Duration = 2
-
+func fetchNewMessages(p *tea.Program, c *websocket.Conn) {
+	done := make(chan struct{})
+	defer close(done)
 	for {
-		p.Send(updateMessage{
-			lastUpdate: time.Now().UnixMilli() - (int64(secondsSleep * 1000)),
+		message := models.Message{}
+		err := c.ReadJSON(&message)
+		if err != nil {
+			return
+		}
+		p.Send(newMessage{
+			message: message,
 		})
-		time.Sleep(time.Second * secondsSleep)
 	}
 }
