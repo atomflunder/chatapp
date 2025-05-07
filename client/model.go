@@ -19,6 +19,8 @@ type model struct {
 	ws       *websocket.Conn
 }
 
+type errMsg error
+
 type newMessage struct {
 	message models.Message
 }
@@ -102,7 +104,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textarea.Reset()
 			m.viewport.GotoBottom()
 		}
-
+	case errMsg:
+		part := models.PartialMessage{
+			Content: msg.Error(),
+			Identity: models.Identity{
+				Username: "system",
+				Channel:  m.identity.Channel,
+			},
+		}
+		m.messages = append(m.messages, part.GetMessage())
+		return m, nil
 	}
 
 	return m, tea.Batch(tiCmd, vpCmd)
