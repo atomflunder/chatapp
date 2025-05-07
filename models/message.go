@@ -41,3 +41,8 @@ func (p PartialMessage) GetMessage() Message {
 func (m Message) Format() string {
 	return fmt.Sprintf("%s (%s):\n%s", m.Username, time.Unix(0, m.Timestamp*int64(time.Millisecond)).Format(time.TimeOnly), m.Content)
 }
+
+// Formats your own message in a nice readable format.
+func (m Message) FormatOwn() string {
+	return fmt.Sprintf("%s (You) (%s):\n%s", m.Username, time.Unix(0, m.Timestamp*int64(time.Millisecond)).Format(time.TimeOnly), m.Content)
+}
