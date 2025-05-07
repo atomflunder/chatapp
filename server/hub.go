@@ -37,12 +37,23 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
+			if h.isIdentityInUse(client.identity) {
+				// TODO: Tell the client it couldn't connect
+				close(client.send)
+				continue
+			}
+
+			cl := h.getClientsInChannel(client.identity.Channel)
+			h.sendSystemMessage(client.identity.Channel, fmt.Sprintf("User %s joined, there are now %d users in this chat", client.identity.Username, len(cl)+1))
 			h.clients[client] = true
+			h.sendPrivateMessage(client.identity, fmt.Sprintf("Welcome to %s, there are %d other users in this chat", client.identity.Channel, len(cl)))
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
 			}
+			cl := h.getClientsInChannel(client.identity.Channel)
+			h.sendSystemMessage(client.identity.Channel, fmt.Sprintf("User %s left, there are now %d users in this chat", client.identity.Username, len(cl)))
 		case rawMessage := <-h.broadcast:
 			h.handleMessage(rawMessage)
 		}
@@ -82,4 +93,70 @@ func (h *Hub) handleMessage(rawMessage []byte) {
 			delete(h.clients, client)
 		}
 	}
+}
+
+func (h *Hub) sendSystemMessage(channel string, content string) {
+	partial := models.PartialMessage{
+		Content: content,
+		Identity: models.Identity{
+			Username: "system",
+			Channel:  channel,
+		},
+	}
+	sysMsg := partial.GetMessage()
+	byteMsg, err := json.Marshal(sysMsg)
+	if err != nil {
+		return
+	}
+
+	for client := range h.clients {
+		if client.identity.Channel == channel {
+			client.send <- byteMsg
+		}
+	}
+}
+
+func (h *Hub) sendPrivateMessage(identity models.Identity, content string) {
+	partial := models.PartialMessage{
+		Content: content,
+		Identity: models.Identity{
+			Username: "system",
+			Channel:  identity.Channel,
+		},
+	}
+	sysMsg := partial.GetMessage()
+	byteMsg, err := json.Marshal(sysMsg)
+	if err != nil {
+		return
+	}
+
+	for client := range h.clients {
+		if client.identity.Username == identity.Username && client.identity.Channel == identity.Channel {
+			client.send <- byteMsg
+		}
+	}
+}
+
+func (h *Hub) getClientsInChannel(channel string) []models.Identity {
+	clients := []models.Identity{}
+
+	for client := range h.clients {
+		if client.identity.Channel == channel {
+			clients = append(clients, client.identity)
+		}
+	}
+
+	return clients
+}
+
+func (h *Hub) isIdentityInUse(identity models.Identity) bool {
+	cl := h.getClientsInChannel(identity.Channel)
+
+	for _, client := range cl {
+		if client.Channel == identity.Channel && client.Username == identity.Username {
+			return true
+		}
+	}
+
+	return false
 }

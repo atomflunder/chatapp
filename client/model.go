@@ -120,13 +120,13 @@ func (m model) View() string {
 
 func (m model) formatMessages() string {
 	defaultStyle := lipgloss.NewStyle().Width(m.viewport.Width - 8)
-	systemStyle := defaultStyle.Foreground(lipgloss.Color("#ff0000"))
 
 	s := fmt.Sprintf("You're logged in to #%s as %s - Start chatting!\n", m.identity.Channel, m.identity.Username)
 	for _, msg := range m.messages {
 		switch msg.Username {
 		case "system":
-			s += systemStyle.Render(msg.Format())
+			style := defaultStyle.Foreground(lipgloss.Color("#ff6b6b")).Align(lipgloss.Left).Italic(true)
+			s += style.Render(msg.Format())
 		case m.identity.Username:
 			color := calculateColorCode(msg.Username)
 			style := defaultStyle.BorderStyle(senderBorder).Foreground(lipgloss.Color(color)).Align(lipgloss.Right)
