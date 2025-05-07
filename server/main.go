@@ -27,7 +27,12 @@ func main() {
 			return
 		}
 
-		serveWs(hub, w, r, username, channel)
+		i := models.Identity{
+			Username: username,
+			Channel:  channel,
+		}
+
+		serveWs(hub, w, r, i)
 	})
 
 	cfg := models.GetConfig()

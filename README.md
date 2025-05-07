@@ -27,7 +27,8 @@ The server also stores the messages in a SQLite Database, as a backup log. Durin
 And then:
 
 -   Run server: `go run ./server`
--   Run client: `go run ./client`
+-   Run client: `go run ./client`  
+    (To skip the prompts, run `go run ./client --dev`)
 
 ## Built with
 

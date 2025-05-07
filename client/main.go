@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"strings"
 
@@ -13,6 +15,42 @@ import (
 )
 
 func main() {
+	identity := getDetails()
+
+	cfg := models.GetConfig()
+	c, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/channels/%s/user/%s", cfg.Host, cfg.Port, identity.Channel, identity.Username), nil)
+
+	if err != nil {
+		log.Fatal("Failed to connect to websocket")
+	}
+	defer c.Close()
+
+	p := tea.NewProgram(initialModel(identity, c))
+
+	go fetchNewMessages(p, c)
+
+	if _, err := p.Run(); err != nil {
+		fmt.Printf("Error: %s", err)
+		os.Exit(1)
+	}
+}
+
+func getDetails() models.Identity {
+	isDev := flag.Bool("dev", false, "Skips name and channel prompt")
+	flag.Parse()
+
+	if *isDev {
+		min := 100_000
+		max := 999_999
+
+		n := min + rand.Intn(max-min+1)
+
+		return models.Identity{
+			Username: fmt.Sprintf("dev_user_%d", n),
+			Channel:  "dev_channel",
+		}
+	}
+
 	inputReader := bufio.NewReader(os.Stdin)
 
 	fmt.Println("Hi, please type in your Username: ")
@@ -35,21 +73,9 @@ func main() {
 		log.Fatal("Channel IDs cannot have spaces in them")
 	}
 
-	cfg := models.GetConfig()
-	c, _, err := websocket.DefaultDialer.Dial(fmt.Sprintf("ws://%s:%s/channels/%s/user/%s", cfg.Host, cfg.Port, channel, username), nil)
-
-	if err != nil {
-		log.Fatal("Failed to connect to websocket")
-	}
-	defer c.Close()
-
-	p := tea.NewProgram(initialModel(username, channel, c))
-
-	go fetchNewMessages(p, c)
-
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Error: %s", err)
-		os.Exit(1)
+	return models.Identity{
+		Username: username,
+		Channel:  channel,
 	}
 }
 

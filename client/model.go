@@ -12,8 +12,7 @@ import (
 )
 
 type model struct {
-	username string
-	channel  string
+	identity models.Identity
 	messages []models.Message
 	viewport viewport.Model
 	textarea textarea.Model
@@ -24,13 +23,13 @@ type newMessage struct {
 	message models.Message
 }
 
-func initialModel(username string, channel string, ws *websocket.Conn) model {
+func initialModel(identity models.Identity, ws *websocket.Conn) model {
 	messages := []models.Message{}
 
 	ta := textarea.New()
 	ta.Placeholder = "Send a message..."
 	ta.Focus()
-	ta.Prompt = fmt.Sprintf("%s: ", username)
+	ta.Prompt = fmt.Sprintf("%s: ", identity.Username)
 	ta.CharLimit = 128
 
 	ta.SetWidth(128)
@@ -41,13 +40,12 @@ func initialModel(username string, channel string, ws *websocket.Conn) model {
 	ta.ShowLineNumbers = false
 
 	vp := viewport.New(128, 30)
-	vp.SetContent(fmt.Sprintf("Chatroom #%s", channel))
+	vp.SetContent(fmt.Sprintf("Chatroom #%s", identity.Channel))
 
 	ta.KeyMap.InsertNewline.SetEnabled(false)
 
 	return model{
-		username: username,
-		channel:  channel,
+		identity: identity,
 		messages: messages,
 		textarea: ta,
 		viewport: vp,
@@ -91,8 +89,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Handles sending messages
 			partialMessage := models.PartialMessage{
 				Content:  m.textarea.Value(),
-				Username: m.username,
-				Channel:  m.channel,
+				Identity: m.identity,
 			}
 			message := partialMessage.GetMessage()
 
@@ -125,12 +122,12 @@ func (m model) formatMessages() string {
 	defaultStyle := lipgloss.NewStyle().Width(m.viewport.Width - 8).BorderStyle(lipgloss.RoundedBorder())
 	systemStyle := defaultStyle.Foreground(lipgloss.Color("#ff0000"))
 
-	s := fmt.Sprintf("You're logged in to #%s as %s - Start chatting!\n", m.channel, m.username)
+	s := fmt.Sprintf("You're logged in to #%s as %s - Start chatting!\n", m.identity.Channel, m.identity.Username)
 	for _, msg := range m.messages {
 		switch msg.Username {
 		case "system":
 			s += systemStyle.Render(msg.Format())
-		case m.username:
+		case m.identity.Username:
 			color := calculateColorCode(msg.Username)
 			style := defaultStyle.Foreground(lipgloss.Color(color)).Align(lipgloss.Right)
 			s += style.Render(msg.Format())

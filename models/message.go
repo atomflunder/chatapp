@@ -7,18 +7,21 @@ import (
 	"github.com/google/uuid"
 )
 
+type Identity struct {
+	Username string `json:"username"`
+	Channel  string `json:"channel"`
+}
+
 type Message struct {
 	ID        string `json:"id"`
 	Content   string `json:"content"`
 	Timestamp int64  `json:"timestamp"`
-	Username  string `json:"username"`
-	Channel   string `json:"channel"`
+	Identity
 }
 
 type PartialMessage struct {
-	Content  string `json:"content"`
-	Username string `json:"username"`
-	Channel  string `json:"channel"`
+	Content string `json:"content"`
+	Identity
 }
 
 // Builds a full message from a partial one.
@@ -26,9 +29,11 @@ func (p PartialMessage) GetMessage() Message {
 	return Message{
 		ID:        uuid.NewString(),
 		Timestamp: time.Now().UnixMilli(),
-		Username:  p.Username,
 		Content:   p.Content,
-		Channel:   p.Channel,
+		Identity: Identity{
+			Channel:  p.Channel,
+			Username: p.Username,
+		},
 	}
 }
 

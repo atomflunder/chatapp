@@ -8,9 +8,11 @@ import (
 
 func TestPartialMessage_GetMessage(t *testing.T) {
 	p := PartialMessage{
-		Content:  "Hello, world!",
-		Username: "alice",
-		Channel:  "general",
+		Content: "Hello, world!",
+		Identity: Identity{
+			Username: "alice",
+			Channel:  "general",
+		},
 	}
 	channel := "general"
 	msg := p.GetMessage()
@@ -35,10 +37,12 @@ func TestPartialMessage_GetMessage(t *testing.T) {
 func TestMessage_Format(t *testing.T) {
 	now := time.Now()
 	msg := Message{
-		ID:        "test-id",
-		Content:   "Test message",
-		Username:  "bob",
-		Channel:   "random",
+		ID:      "test-id",
+		Content: "Test message",
+		Identity: Identity{
+			Username: "bob",
+			Channel:  "random",
+		},
 		Timestamp: now.UnixMilli(),
 	}
 

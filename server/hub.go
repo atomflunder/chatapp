@@ -70,7 +70,7 @@ func (h *Hub) handleMessage(rawMessage []byte) {
 	}
 
 	for client := range h.clients {
-		if client.channel != fullMessage.Channel || client.username == fullMessage.Username {
+		if client.identity.Channel != fullMessage.Identity.Channel || client.identity.Username == fullMessage.Username {
 			continue
 		}
 

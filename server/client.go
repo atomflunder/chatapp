@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/atomflunder/chatapp/models"
 	"github.com/gorilla/websocket"
 )
 
@@ -30,8 +31,7 @@ type Client struct {
 	hub      *Hub
 	conn     *websocket.Conn
 	send     chan []byte
-	channel  string
-	username string
+	identity models.Identity
 }
 
 // Pumps messages from the websocket connection to the hub.
@@ -99,13 +99,13 @@ func (c *Client) writePump() {
 }
 
 // Serves a new websocket connection for a single client
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, username string, channel string) {
+func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, identity models.Identity) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), username: username, channel: channel}
+	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), identity: identity}
 	client.hub.register <- client
 
 	go client.writePump()
