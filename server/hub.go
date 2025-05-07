@@ -37,23 +37,27 @@ func (h *Hub) run() {
 	for {
 		select {
 		case client := <-h.register:
+			cl := h.getClientsInChannel(client.identity.Channel)
+			h.sendSystemMessage(client.identity.Channel, fmt.Sprintf("User %s joined, there are now %d users in this chat",
+				client.identity.Username, len(cl)+1))
+
 			if h.isIdentityInUse(client.identity) {
 				// TODO: Tell the client it couldn't connect
 				close(client.send)
 				continue
 			}
 
-			cl := h.getClientsInChannel(client.identity.Channel)
-			h.sendSystemMessage(client.identity.Channel, fmt.Sprintf("User %s joined, there are now %d users in this chat", client.identity.Username, len(cl)+1))
 			h.clients[client] = true
-			h.sendPrivateMessage(client.identity, fmt.Sprintf("Welcome to %s, there are %d other users in this chat", client.identity.Channel, len(cl)))
+			h.sendPrivateMessage(client.identity, fmt.Sprintf("Welcome to %s, there are %d other users in this chat: %s",
+				client.identity.Channel, len(cl), h.getAllClientNames(client.identity.Channel)))
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
 				delete(h.clients, client)
 				close(client.send)
 			}
 			cl := h.getClientsInChannel(client.identity.Channel)
-			h.sendSystemMessage(client.identity.Channel, fmt.Sprintf("User %s left, there are now %d users in this chat", client.identity.Username, len(cl)))
+			h.sendSystemMessage(client.identity.Channel, fmt.Sprintf("User %s left, there are now %d users in this chat",
+				client.identity.Username, len(cl)))
 		case rawMessage := <-h.broadcast:
 			h.handleMessage(rawMessage)
 		}
@@ -147,6 +151,17 @@ func (h *Hub) getClientsInChannel(channel string) []models.Identity {
 	}
 
 	return clients
+}
+
+func (h *Hub) getAllClientNames(channel string) string {
+	s := ""
+	cl := h.getClientsInChannel(channel)
+
+	for _, client := range cl {
+		s += fmt.Sprintf("%s ", client.Username)
+	}
+
+	return s
 }
 
 func (h *Hub) isIdentityInUse(identity models.Identity) bool {
