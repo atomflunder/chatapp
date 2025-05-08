@@ -60,7 +60,7 @@ func (h *Hub) run() {
 			clNames := h.getAllClientNames(client.identity.Channel)
 
 			h.clients[client] = true
-			h.sendPrivateMessage(client, fmt.Sprintf("Welcome to %s, there are %d other user(s) in this chat: %s",
+			h.sendPrivateMessage(client, fmt.Sprintf("Welcome to #%s, there are %d other user(s) in this chat: %s",
 				client.identity.Channel, len(cl), clNames))
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {

@@ -31,7 +31,7 @@ func initialModel(identity models.Identity, ws *websocket.Conn) model {
 	ta := textarea.New()
 	ta.Placeholder = "Send a message..."
 	ta.Focus()
-	ta.Prompt = fmt.Sprintf("%s: ", identity.Username)
+	ta.Prompt = fmt.Sprintf("#%s - %s: ", identity.Channel, identity.Username)
 	ta.CharLimit = 128
 
 	ta.SetWidth(128)
@@ -72,7 +72,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.viewport.Width = msg.Width
 		m.textarea.SetWidth(msg.Width)
-		m.viewport.Height = msg.Height - m.textarea.Height() - lipgloss.Height("\n\n")
+		m.viewport.Height = msg.Height - m.textarea.Height()
 
 		if len(m.messages) > 0 {
 			m.viewport.SetContent(lipgloss.NewStyle().Width(m.viewport.Width).Render(m.formatMessages()))
@@ -132,7 +132,7 @@ func (m model) View() string {
 func (m model) formatMessages() string {
 	defaultStyle := lipgloss.NewStyle().Width(m.viewport.Width - 8)
 
-	s := fmt.Sprintf("You're logged in to #%s as %s - Start chatting!\n", m.identity.Channel, m.identity.Username)
+	s := ""
 	for _, msg := range m.messages {
 		switch msg.Username {
 		case "system":
