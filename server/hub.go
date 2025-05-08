@@ -42,7 +42,17 @@ func (h *Hub) run() {
 				client.identity.Username, len(cl)+1))
 
 			if h.isIdentityInUse(client.identity) {
-				// TODO: Tell the client it couldn't connect
+				partialMessage := models.PartialMessage{
+					Content: "Username/Channel combination already in use, please reconnect!",
+					Identity: models.Identity{
+						Username: "system",
+						Channel:  client.identity.Channel,
+					},
+				}
+				errorMessage, err := json.Marshal(partialMessage.GetMessage())
+				if err == nil {
+					client.send <- errorMessage
+				}
 				close(client.send)
 				continue
 			}
@@ -50,7 +60,7 @@ func (h *Hub) run() {
 			clNames := h.getAllClientNames(client.identity.Channel)
 
 			h.clients[client] = true
-			h.sendPrivateMessage(client.identity, fmt.Sprintf("Welcome to %s, there are %d other user(s) in this chat: %s",
+			h.sendPrivateMessage(client, fmt.Sprintf("Welcome to %s, there are %d other user(s) in this chat: %s",
 				client.identity.Channel, len(cl), clNames))
 		case client := <-h.unregister:
 			if _, ok := h.clients[client]; ok {
@@ -101,6 +111,7 @@ func (h *Hub) handleMessage(rawMessage []byte) {
 	}
 }
 
+// Sends a system message in a channel.
 func (h *Hub) sendSystemMessage(channel string, content string) {
 	partial := models.PartialMessage{
 		Content: content,
@@ -122,12 +133,13 @@ func (h *Hub) sendSystemMessage(channel string, content string) {
 	}
 }
 
-func (h *Hub) sendPrivateMessage(identity models.Identity, content string) {
+// Sends a private message directly to the client.
+func (h *Hub) sendPrivateMessage(client *Client, content string) {
 	partial := models.PartialMessage{
 		Content: content,
 		Identity: models.Identity{
 			Username: "system",
-			Channel:  identity.Channel,
+			Channel:  "",
 		},
 	}
 	sysMsg := partial.GetMessage()
@@ -136,13 +148,10 @@ func (h *Hub) sendPrivateMessage(identity models.Identity, content string) {
 		return
 	}
 
-	for client := range h.clients {
-		if client.identity.Username == identity.Username && client.identity.Channel == identity.Channel {
-			client.send <- byteMsg
-		}
-	}
+	client.send <- byteMsg
 }
 
+// Gets you every client in a channel.
 func (h *Hub) getClientsInChannel(channel string) []models.Identity {
 	clients := []models.Identity{}
 
@@ -155,6 +164,7 @@ func (h *Hub) getClientsInChannel(channel string) []models.Identity {
 	return clients
 }
 
+// Gets every client's username, separated by spaces.
 func (h *Hub) getAllClientNames(channel string) string {
 	s := ""
 	cl := h.getClientsInChannel(channel)
@@ -166,6 +176,7 @@ func (h *Hub) getAllClientNames(channel string) string {
 	return s
 }
 
+// Checks if a username/channel combination is already connected to the hub.
 func (h *Hub) isIdentityInUse(identity models.Identity) bool {
 	cl := h.getClientsInChannel(identity.Channel)
 
